@@ -16,10 +16,20 @@ GO
 SELECT * FROM RTestData
 
 
-
 EXECUTE sp_execute_external_script
     @language=N'R'
     , @script=N' OutputDataSet <- InputDataSet;'
     , @input_data_1=N' SELECT * FROM RTestData;'
     WITH RESULT SETS (([NewColName] int NOT NULL));
+
+EXECUTE sp_execute_external_script
+    @language=N'R'
+    , @script=N'SQL_Out <- SQL_In;'
+    , @input_data_1=N'SELECT 12 As Col;'
+    , @input_data_1_name=N'SQL_In;'
+    , @output_data_1_name=N'SQL_Out;'
+    WITH RESULT SETS (([NewColName] int NOT NULL));
+
     
+
+
