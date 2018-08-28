@@ -32,5 +32,9 @@ EXECUTE sp_execute_external_script
     WITH RESULT SETS (([NewColName] int NOT NULL));
 
     
-
-
+Execute sp_execute_external_script
+    @language=N'R'
+    , @script=N' mytextvariable <- c("hello", " ", "world");
+        OutputDataSet <- as.data.frame(mytextvariable);'
+    ,@input_data_1 = N' SELECT 1 as Temp1'
+    WITH RESULT SETS (([Col1] char(20) NOT NULL))
