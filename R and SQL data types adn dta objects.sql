@@ -70,3 +70,11 @@ EXECUTE sp_execute_external_script
         WHERE [SalesPersonID] = 282
         ORDER BY ModifiedDate ASC;'
 WITH RESULT SETS undefined;
+
+EXEC sp_execute_external_script
+    @language = N'R'
+    , #script = N'
+        OutputDataSet <- as.data.frame(rnorm(100, mean=50, sd=3))'
+    , @input_data_1 = N'     ;'
+    WITH RESULT SETS (([Density] float NOT NULL);
+         
