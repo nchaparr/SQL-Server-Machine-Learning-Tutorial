@@ -52,4 +52,42 @@ EXEC sp_execute_external_script
 INSERT INTO [dbo].[stopping_distance_models] (model_name, model)
 VALUES ('latest model', @model)
 
+-- Predict and plot from model
+CREATE TABLE [dbo].[NewCarSpeed]([speed] [int] NOT NULL, [distance] [int] NULL) ON [PRIMARY]
+GO
+INSERT [dbo].[NewCarSpeed] (speed)
+VALUES (40), (50), (60), (70), (80), (90), (100)
+
+-- DECLARE @speedmodel varbinary(max) = (SELECT model FROM [dbo].[stopping_distance_models] WHERE model_name = 'latest model');
+-- EXEC sp_execute_external_script
+--     @language=N'R'
+--     , @script = N'
+--             current_model <- unserialize(as.raw(speedmodel));
+--             new <- data.frame(NewCarData);
+--             predicted.distance <- rxPredict(current_model, new);
+--             str(predicted.distance);
+--             OutputDataset <- cbind(new, predicted.distance)'
+--     , @input_data_1 = N' SELECT speed FROM [dbo].[NewCarSpeed]'
+--     , @input_data_1_name = N'NewCarData'
+--     , @params = N'@speedmodel varbinary(max) OUTPUT'
+--     ,@speedmodel = @speedmodel OUTPUT
+-- WITH RESULT SETS (([new_speed] INT, [predicted_distance] INT))
+
+DECLARE @speedmodel varbinary(max) = 
+    (SELECT model FROM [dbo].[stopping_distance_models] WHERE model_name = 'latest model');
+
+EXEC sp_execute_external_script
+    @language = N'R'
+    , @script = N'
+            current_model <- unserialize(as.raw(speedmodel));
+            new <- data.frame(NewCarSpeed);
+            predicted.distance <- rxPredict(current_model, new, type = "response");
+            str(predicted.distance);
+            OutputDataSet <- cbind(new, predicted.distance);
+            '
+    , @input_data_1 = N'SELECT speed FROM [dbo].[NewCarSpeed]'
+    , @input_data_1_name = N'NewCarSpeed'
+    , @params = N'@speedmodel varbinary(max)'
+    , @speedmodel = @speedmodel
+WITH RESULT SETS ((new_speed INT, predicted_distance INT));
 
